@@ -2,6 +2,8 @@
 .text-2xl{
     font-size: 1.5rem;
     line-height: 2rem;
+    padding: 0px;
+    margin: 0px;
 }
 .text-xl{
     font-size: 1.25rem;
@@ -43,4 +45,8 @@ a:hover{
 i{
     font-size: 18px !important;
     cursor: pointer !important;
+}
+
+.underline{
+    text-decoration: underline !important;
 }

@@ -34,10 +34,10 @@
     width: 400px;
 }
 
-.flex{
+.flex {
     display: flex;
 }
-.flex-col{
+.flex-col {
     flex-direction: column;
 }
 
