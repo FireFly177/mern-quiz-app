@@ -4,6 +4,7 @@ import { message } from "antd";
 import { useDispatch, useSelector } from "react-redux";
 import { SetUser } from "../redux/usersSlice";
 import { useNavigate } from "react-router-dom";
+import { HideLoading, ShowLoading } from "../redux/loaderSlice";
 
 function ProtectedRoute({ children }) {
   const { user } = useSelector((state) => state.users);
@@ -11,28 +12,27 @@ function ProtectedRoute({ children }) {
   const [collapsed, setCollapsed] = useState(false);
 
   const dispatch = useDispatch();
-
   const navigate = useNavigate();
 
   const userMenu = [
     {
       title: "Home",
-      paths: ["/"],
+      paths: ["/", "/user/do-exam"],
       icon: <i className="ri-home-line"></i>,
       onClick: () => navigate("/"),
     },
     {
       title: "Reports",
-      paths: ["/reports"],
+      paths: ["/user/reports"],
       icon: <i className="ri-bar-chart-line"></i>,
-      onClick: () => navigate("/reports"),
+      onClick: () => navigate("/user/reports"),
     },
-    {
-      title: "Profile",
-      paths: ["/profile"],
-      icon: <i className="ri-user-line"></i>,
-      onClick: () => navigate("/profile"),
-    },
+    // {
+    //   title: "Profile",
+    //   paths: ["/profile"],
+    //   icon: <i className="ri-user-line"></i>,
+    //   onClick: () => navigate("/profile"),
+    // },
     {
       title: "Logout",
       paths: ["/logout"],
@@ -46,28 +46,28 @@ function ProtectedRoute({ children }) {
   const adminMenu = [
     {
       title: "Home",
-      paths: ["/"],
+      paths: ["/", "/do-exam"],
       icon: <i className="ri-home-line"></i>,
       onClick: () => navigate("/"),
     },
-		{
-			title: "Exams",
-			paths: ["/admin/exams", "/admin/exams/add"],
-			icon: <i className="ri-file-list-line"></i>,
-			onClick: () => navigate("/admin/exams"),
-		},
+    {
+      title: "Exams",
+      paths: ["/admin/exams", "/admin/exams/add"],
+      icon: <i className="ri-file-list-line"></i>,
+      onClick: () => navigate("/admin/exams"),
+    },
     {
       title: "Reports",
-      paths: ["/reports"],
+      paths: ["/admin/reports"],
       icon: <i className="ri-bar-chart-line"></i>,
       onClick: () => navigate("/admin/reports"),
     },
-    {
-      title: "Profile",
-      paths: ["/profile"],
-      icon: <i className="ri-user-line"></i>,
-      onClick: () => navigate("/profile"),
-    },
+    // {
+    //   title: "Profile",
+    //   paths: ["/profile"],
+    //   icon: <i className="ri-user-line"></i>,
+    //   onClick: () => navigate("/profile"),
+    // },
     {
       title: "Logout",
       paths: ["/logout"],
@@ -81,7 +81,9 @@ function ProtectedRoute({ children }) {
 
   const getUserData = async () => {
     try {
+      dispatch(ShowLoading());
       const response = await getUserInfo();
+      dispatch(HideLoading());
       if (response.success) {
         message.success(response.message);
         dispatch(SetUser(response.data));
@@ -94,23 +96,41 @@ function ProtectedRoute({ children }) {
         message.error(response.message);
       }
     } catch (error) {
+      dispatch(HideLoading());
       message.error(error.message);
+      navigate("/login");
     }
   };
 
   useEffect(() => {
-    getUserData();
+    if (localStorage.getItem("token")) {
+      getUserData();
+    } else {
+      navigate("/login");
+    }
   }, []);
 
   const activeRoute = window.location.pathname;
 
-	const getIsActiveOrNot = (paths) => {
-		if (paths.includes(activeRoute)) {
-			return true;
-		} else {
-			return false;
-		}
-	}
+  const getIsActiveOrNot = (paths) => {
+    if (paths.includes(activeRoute)) {
+      return true;
+    } else {
+      if (
+        activeRoute.includes("/admin/exams/edit") &&
+        paths.includes("/admin/exams")
+      ) {
+        return true;
+      }
+      if (
+        activeRoute.includes("/user/write-exam") &&
+        paths.includes("/user/write-exam")
+      ) {
+        return true;
+      }
+    }
+    return false;
+  };
 
   return (
     <div className="layout">
@@ -148,9 +168,12 @@ function ProtectedRoute({ children }) {
               ></i>
             )}
             <h1 className="text-2xl text-white">Quiz App</h1>
-            <div className="flex gap-1 items-center">
-              <i class="ri-user-line"></i>
-              <h1 className="text-md text-white underline">{user?.name}</h1>
+            <div>
+              <div className="flex gap-1 items-center">
+                {/* <i class="ri-user-line"></i> */}
+                <h1 className="text-md text-white">{user?.name}</h1>
+              </div>
+              <span>Role: {user?.isAdmin ? "Admin" : "User"}</span>
             </div>
           </div>
           <div className="content">{children}</div>
